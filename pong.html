@@ -64,11 +64,14 @@
     speed: 10,
 
     serve: function(side) {
-      var r = Math.random();
+      var r = Math.random() - 0.5; // -0.5 to 0.5
+      r /= 4 // -0.125 to 0.125
+      paddle = side===1 ? player : ai;
       this.x = side===1 ? player.x + player.width : ai.x - this.side;
-      this.y = (HEIGHT - this.side)*r;
+      this.y = paddle.y + (paddle.height)/2;
+      this.y += (paddle.height)*r;
 
-      var phi = 0.1*pi*(1 - 2*r);
+      var phi = pi/2*r;
       this.vel = {
         x: side*this.speed * Math.cos(phi),
         y: this.speed * Math.sin(phi),
