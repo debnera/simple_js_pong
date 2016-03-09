@@ -27,6 +27,7 @@
     y: null,
     width: 20,
     height: 100,
+    score: 0,
 
     update: function() {
       if (keystate[UpArrow]) this.y -= 7;
@@ -43,6 +44,7 @@
     y: null,
     width: 20,
     height: 100,
+    score: 0,
 
     update: function() {
       var desty = ball.y - (this.height - ball.side) * 0.5;
@@ -100,8 +102,12 @@
               this.vel.y = smash * this.speed * Math.sin(phi);
             }
 
+            // Check if ball is out of bounds (i.e. goal)
             if (0 > this.x+this.side || this.x > WIDTH) {
-              this.serve(paddle===player ? 1 : -1)
+              // Increment score of the opposite paddle
+              paddle === player ? ai.score++ : player.score++;
+              // Put ball back in game
+              this.serve(paddle===player ? 1 : -1);
             }
     },
     draw: function() {
@@ -152,6 +158,13 @@
     ai.update();
   }
 
+  function draw_score() {
+    ctx.fillStyle = "#fff";
+    ctx.font="20px Georgia";
+    ctx.fillText(player.score,0.1*WIDTH,0.1*HEIGHT);
+    ctx.fillText(ai.score,0.9*WIDTH,0.1*HEIGHT);
+  }
+
   function draw() {
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
     ctx.save();
@@ -167,7 +180,7 @@
       ctx.fillRect(x, y+step*0.25, w, step*0.5);
       y += step;
     }
-
+    draw_score();
     ctx.restore();
   }
   main();
