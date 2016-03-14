@@ -22,6 +22,23 @@
   var canvas, ctx, keystate;
   var player, ai, ball;
 
+  // Collision helper functions
+  var RectRectIntersect = function(a, b) {
+    var axIntersect = a.x < (b.x + b.width);
+    var bxIntersect = b.x < (a.x + a.width);
+    var ayIntersect = a.y < (b.y + b.height);
+    var byIntersect = b.y < (a.y + a.height);
+    return axIntersect && bxIntersect && ayIntersect && byIntersect;
+  };
+
+  var RectBallIntersect = function(rect, ball) {
+    var rxIntersect = rect.x < ball.x + ball.radius;
+    var bxIntersect = ball.x - ball.radius < rect.x + rect.width;
+    var ryIntersect = rect.y < ball.y + ball.radius;
+    var byIntersect = ball.y - ball.radius < rect.y + rect.height;
+    return rxIntersect && bxIntersect && ryIntersect && byIntersect;
+  };
+
   player = {
     x: null,
     y: null,
@@ -47,7 +64,7 @@
     score: 0,
 
     update: function() {
-      var desty = ball.y - (this.height - ball.side) * 0.5;
+      var desty = ball.y - (this.height - ball.radius) * 0.5;
       this.y += (desty - this.y) * 0.1;
       this.y = Math.max(Math.min(this.y, HEIGHT - this.height), 0);
     },
@@ -59,62 +76,66 @@
   ball = {
     x: null,
     y: null,
-    vel: null,
-    side: 20,
-    speed: 10,
+    vel: {
+      x: 0,
+      y: 0,
+    },
+    radius: 10,
+    speed: 5,
 
     serve: function(side) {
+      // Spawns ball on the paddle at random y
       var r = Math.random() - 0.5; // -0.5 to 0.5
       r /= 4 // -0.125 to 0.125
       paddle = side===1 ? player : ai;
-      this.x = side===1 ? player.x + player.width : ai.x - this.side;
+      this.x = side===1 ? player.x + player.width : ai.x - this.radius;
       this.y = paddle.y + (paddle.height)/2;
       this.y += (paddle.height)*r;
 
-      var phi = pi/2*r;
-      this.vel = {
-        x: side*this.speed * Math.cos(phi),
-        y: this.speed * Math.sin(phi),
-      }
+      this.bounce(paddle); // Set the ball of at corresponding angle
+    },
+
+    bounce: function(paddle) {
+      // Bounces the ball from paddle at an angle.
+      this.x = paddle===player ? player.x + player.width : ai.x - this.radius;
+      var n = (this.y + this.radius - paddle.y)/(paddle.height + this.radius);
+      var phi = 0.25*pi*(2*n - 1); // pi/4 = 45 degrees
+
+      var smash = Math.abs(phi) > 0.2*pi ? 1.5 : 1;
+      this.vel.x = smash * (paddle===player ? 1 : -1)*this.speed * Math.cos(phi);
+      this.vel.y = smash * this.speed * Math.sin(phi);
     },
 
     update: function() {
       this.x += this.vel.x;
       this.y += this.vel.y;
 
-      if (0 > this.y || this.y + this.side > HEIGHT) {
-        var offset = this.vel.y < 0 ? 0 - this.y : HEIGHT - (this.y+this.side);
-        this.y += 2*offset;
+      // Check if ball is below or above screen
+      if (0 > this.y - this.radius || this.y + this.radius > HEIGHT) {
+        var offset = this.vel.y < 0 ? - (this.y - this.radius) : HEIGHT - (this.y+this.radius);
+        this.y += 2*offset; // Get a nice bouncy effect
         this.vel.y *= -1;
       }
 
-      var AABBIntersect = function(ax, ay, aw, ah, bx, by, bw, bh) {
-        return ax < bx+bw && ay < by+bh && bx < ax+aw && by < ay+ah;
-      };
-
       var paddle = this.vel.x < 0 ? player : ai;
-      if (AABBIntersect(paddle.x, paddle.y, paddle.width, paddle.height,
-            this.x, this.y, this.side, this.side))
-            {
-              this.x = paddle===player ? player.x + player.width : ai.x - this.side;
-              var n = (this.y + this.side - paddle.y)/(paddle.height + this.side);
-              var phi = 0.25*pi*(2*n - 1); // pi/4 = 45 degrees
+      if (RectBallIntersect(paddle, this)) {
+        this.bounce(paddle);
+      }
 
-              var smash = Math.abs(phi) > 0.2*pi ? 1.5 : 1;
-              this.vel.x = smash * (paddle===player ? 1 : -1)*this.speed * Math.cos(phi);
-              this.vel.y = smash * this.speed * Math.sin(phi);
-            }
-
-            // Check if ball is out of bounds (i.e. goal)
-            if (0 > this.x+this.side || this.x > WIDTH) {
-              // Increment score of the opposite paddle
-              paddle === player ? ai.score++ : player.score++;
-              // Put ball back in game
-              this.serve(paddle===player ? 1 : -1);
-            }
+      // Check if ball is out of bounds (i.e. goal)
+      if (0 > this.x+this.radius || this.x > WIDTH) {
+        // Increment score of the opposite paddle
+        paddle === player ? ai.score++ : player.score++;
+        // Put ball back in game
+        this.serve(paddle===player ? 1 : -1);
+      }
     },
     draw: function() {
-      ctx.fillRect(this.x, this.y, this.side, this.side);
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius, 0, 2*pi, false);
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = 'white';
+      ctx.stroke();
     }
   };
 
