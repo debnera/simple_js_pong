@@ -104,10 +104,8 @@
       var n = (this.y + this.radius - paddle.y)/(paddle.height + this.radius);
       var phi = 0.25*pi*(2*n - 1); // pi/4 = 45 degrees
 
-      // var smash = Math.abs(phi) > 0.2*pi ? 1.5 : 1;
-      var smash = 1;
-      this.vel.x = smash * (paddle===player ? 1 : -1)*this.speed * Math.cos(phi);
-      this.vel.y = smash * this.speed * Math.sin(phi);
+      this.vel.x = (paddle===player ? 1 : -1)*this.speed * Math.cos(phi);
+      this.vel.y = this.speed * Math.sin(phi);
       this.speed += 0.1 * this.start_speed;
       // Speed cannot be more than paddle width, otherwise it will skip through
       this.speed = Math.min(this.speed, paddle.width);
