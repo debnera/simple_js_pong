@@ -86,7 +86,7 @@
         y: 0,
       };
       this.radius = 10;
-      this.start_speed = 5;
+      this.start_speed = 10;
       this.speed = this.start_speed;
     }
 
@@ -131,6 +131,9 @@
       var paddle = this.vel.x < 0 ? player : ai;
       if (RectBallIntersect(paddle, this)) {
         this.bounce(paddle);
+        if (paddle === player) {
+          player.score++;
+        }
       }
 
       // Check if ball is out of bounds
@@ -139,6 +142,10 @@
           // Destroy ball
           var index = balls.indexOf(this);
           balls.splice(index, 1);
+          // Check if all balls are destroyed
+          if (balls.length === 0) {
+            game_over();
+          }
         }
         else {
           // Spawn more balls
@@ -164,6 +171,9 @@
     }
   };
 
+  function game_over() {
+    init();
+  }
 
   function main() {
     canvas = document.createElement("canvas")
@@ -194,10 +204,12 @@
   function init() {
     player.x = player.width;
     player.y = (HEIGHT - player.height)/2;
+    player.score = 0;
 
     ai.x = WIDTH - (player.width + ai.width);
     ai.y = (HEIGHT - ai.height)/2;
 
+    balls = [];
     balls[0] = new Ball();
     balls[0].serve(1);
   }
