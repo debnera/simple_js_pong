@@ -64,17 +64,20 @@
     height: 100,
     score: 0,
     speed: 0.1, // 1 === always hits ball
+    max_speed: 5,
 
     update: function() {
+      // Get the closest ball on x axis
       var closest = balls[0];
       for (i = 1; i < balls.length; i++) {
         if (closest.x < balls[i].x) {
           closest = balls[i];
         }
       }
+      // Follow the closest ball
       if (closest) {
         var desty = closest.y - (this.height - closest.radius) * 0.5;
-        this.y += (desty - this.y) * this.speed;
+        this.y += Math.min((desty - this.y) * this.speed, this.max_speed);
         this.y = Math.max(Math.min(this.y, HEIGHT - this.height), 0);
       }
     },
