@@ -20,7 +20,8 @@
   var WIDTH=1000, HEIGHT=600, pi=Math.PI;
   var UpArrow=38, DownArrow=40;
   var canvas, ctx, keystate;
-  var player, ai, ball;
+  var player, ai;
+  var balls = [];
 
   // Collision helper functions
   var RectRectIntersect = function(a, b) {
@@ -64,7 +65,7 @@
     score: 0,
 
     update: function() {
-      var desty = ball.y - (this.height - ball.radius) * 0.5;
+      var desty = balls[0].y - (this.height - balls[0].radius) * 0.5;
       this.y += (desty - this.y) * 0.1;
       this.y = Math.max(Math.min(this.y, HEIGHT - this.height), 0);
     },
@@ -73,32 +74,34 @@
     }
   };
 
-  ball = {
-    x: null,
-    y: null,
-    vel: {
-      x: 0,
-      y: 0,
-    },
-    radius: 10,
-    start_speed: 5,
-    speed: null,
+  class Ball {
 
+    constructor(){
+      this.x = 0;
+      this.y = 0;
+      this.vel = {
+        x: 0,
+        y: 0,
+      };
+      this.radius = 10;
+      this.start_speed = 5;
+      this.speed = this.start_speed;
+    }
 
-    serve: function(side) {
+    serve(side) {
       // Spawns ball on the paddle at random y
       this.speed = this.start_speed;
       var r = Math.random() - 0.5; // -0.5 to 0.5
       r /= 4 // -0.125 to 0.125
-      paddle = side===1 ? player : ai;
+      var paddle = side===1 ? player : ai;
       this.x = side===1 ? player.x + player.width : ai.x - this.radius;
       this.y = paddle.y + (paddle.height)/2;
       this.y += (paddle.height)*r;
 
       this.bounce(paddle); // Set the ball of at corresponding angle
-    },
+    }
 
-    bounce: function(paddle) {
+    bounce(paddle) {
       // Bounces the ball from paddle at an angle.
       this.x = paddle===player ? player.x + player.width : ai.x - this.radius;
       var n = (this.y + this.radius - paddle.y)/(paddle.height + this.radius);
@@ -109,9 +112,9 @@
       this.speed += 0.1 * this.start_speed;
       // Speed cannot be more than paddle width, otherwise it will skip through
       this.speed = Math.min(this.speed, paddle.width);
-    },
+    }
 
-    update: function() {
+    update() {
       this.x += this.vel.x;
       this.y += this.vel.y;
 
@@ -122,6 +125,7 @@
         this.vel.y *= -1;
       }
 
+      // Check if ball hits a paddle
       var paddle = this.vel.x < 0 ? player : ai;
       if (RectBallIntersect(paddle, this)) {
         this.bounce(paddle);
@@ -134,8 +138,9 @@
         // Put ball back in game
         this.serve(paddle===player ? 1 : -1);
       }
-    },
-    draw: function() {
+    }
+
+    draw() {
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.radius, 0, 2*pi, false);
       ctx.lineWidth = 2;
@@ -178,11 +183,14 @@
     ai.x = WIDTH - (player.width + ai.width);
     ai.y = (HEIGHT - ai.height)/2;
 
-    ball.serve(1);
+    balls[0] = new Ball();
+    balls[0].serve(1);
   }
 
   function update() {
-    ball.update();
+    for (i = 0; i < balls.length; i++) {
+      balls[i].update();
+    }
     player.update();
     ai.update();
   }
@@ -198,7 +206,9 @@
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
     ctx.save();
     ctx.fillStyle = "#fff";
-    ball.draw();
+    for (i = 0; i < balls.length; i++) {
+      balls[i].draw();
+    }
     player.draw();
     ai.draw();
     var w = 4;
