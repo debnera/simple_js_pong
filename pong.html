@@ -172,6 +172,11 @@
   };
 
   function game_over() {
+    var string = "Game over!";
+    string += "\n";
+    string += "You scored ";
+    string += player.score;
+    alert(string);
     init();
   }
 
