@@ -65,9 +65,11 @@
     score: 0,
 
     update: function() {
-      var desty = balls[0].y - (this.height - balls[0].radius) * 0.5;
-      this.y += (desty - this.y) * 0.1;
-      this.y = Math.max(Math.min(this.y, HEIGHT - this.height), 0);
+      if (balls.length > 0) {
+        var desty = balls[0].y - (this.height - balls[0].radius) * 0.5;
+        this.y += (desty - this.y) * 0.1;
+        this.y = Math.max(Math.min(this.y, HEIGHT - this.height), 0);
+      }
     },
     draw: function() {
       ctx.fillRect(this.x, this.y, this.width, this.height);
@@ -131,10 +133,23 @@
         this.bounce(paddle);
       }
 
-      // Check if ball is out of bounds (i.e. goal)
+      // Check if ball is out of bounds
       if (0 > this.x+this.radius || this.x > WIDTH) {
-        // Increment score of the opposite paddle
-        paddle === player ? ai.score++ : player.score++;
+        if (paddle === player) {
+          // Destroy ball
+          var index = balls.indexOf(this);
+          balls.splice(index, 1);
+        }
+        else {
+          // Spawn more balls
+          var len = balls.length;
+          for (i = len; i < len + 2; i++) {
+            balls[i] = new Ball();
+            balls[i].serve(paddle===player ? 1 : -1);
+            balls[i].speed = this.speed;
+          }
+
+        }
         // Put ball back in game
         this.serve(paddle===player ? 1 : -1);
       }
