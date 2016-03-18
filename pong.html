@@ -76,6 +76,7 @@
       }
       // Follow the closest ball
       if (closest) {
+        // Destination y coordinate is at the center of the ball
         var desty = closest.y - (this.height - closest.radius) * 0.5;
         this.y += Math.min((desty - this.y) * this.speed, this.max_speed);
         this.y = Math.max(Math.min(this.y, HEIGHT - this.height), 0);
@@ -91,12 +92,16 @@
     constructor(){
       this.x = 0;
       this.y = 0;
+      this.color = "rgb(" +
+        Math.round(Math.random() * 255) + "," +
+        Math.round(Math.random() * 255) + "," +
+        Math.round(Math.random() * 255) + ")";
       this.vel = {
         x: 0,
         y: 0,
       };
       this.radius = 10;
-      this.start_speed = 10;
+      this.start_speed = 5;
       this.speed = this.start_speed;
     }
 
@@ -177,7 +182,7 @@
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.radius, 0, 2*pi, false);
       ctx.lineWidth = 2;
-      ctx.strokeStyle = 'white';
+      ctx.strokeStyle = this.color;
       ctx.stroke();
     }
   };
@@ -187,7 +192,7 @@
     string += "\n";
     string += "You scored ";
     string += player.score;
-    alert(string);
+    //alert(string);
     init();
   }
 
@@ -218,6 +223,7 @@
   }
 
   function init() {
+    keystate = {}; // Reset the keystate to avoid stuck buttons
     player.x = player.width;
     player.y = (HEIGHT - player.height)/2;
     player.score = 0;
