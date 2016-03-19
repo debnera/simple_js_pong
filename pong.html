@@ -22,6 +22,7 @@
   var canvas, ctx, keystate;
   var player, ai;
   var balls = [];
+  var game_running = false;
 
   // Collision helper functions
   var RectRectIntersect = function(a, b) {
@@ -192,6 +193,7 @@
     string += "\n";
     string += "You scored ";
     string += player.score;
+    game_running = false;
     //alert(string);
     init();
   }
@@ -214,8 +216,13 @@
     init();
 
     var loop = function() {
-      update();
-      draw();
+      if (game_running){
+        update();
+        draw();
+      }
+      else {
+        draw_menu();
+      }
 
       window.requestAnimationFrame(loop, canvas);
     };
@@ -247,8 +254,8 @@
   function draw_score() {
     ctx.fillStyle = "#fff";
     ctx.font="20px Georgia";
-    ctx.fillText(player.score,0.1*WIDTH,0.1*HEIGHT);
-    ctx.fillText(ai.score,0.9*WIDTH,0.1*HEIGHT);
+    ctx.fillText("SCORE: " + player.score ,0.1*WIDTH,0.1*HEIGHT);
+    //ctx.fillText(ai.score,0.9*WIDTH,0.1*HEIGHT);
   }
 
   function draw() {
