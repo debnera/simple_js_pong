@@ -7,6 +7,9 @@ var game_running = false;
 
 // Collision helper functions
 var RectRectIntersect = function(a, b) {
+  /*
+    Used for checking collisions between two rectangles.
+  */
   var axIntersect = a.x < (b.x + b.width);
   var bxIntersect = b.x < (a.x + a.width);
   var ayIntersect = a.y < (b.y + b.height);
@@ -15,6 +18,9 @@ var RectRectIntersect = function(a, b) {
 };
 
 var RectBallIntersect = function(rect, ball) {
+  /*
+    Used for checking collisions between a ball and a rectangle.
+  */
   var rxIntersect = rect.x < ball.x + ball.radius;
   var bxIntersect = ball.x - ball.radius < rect.x + rect.width;
   var ryIntersect = rect.y < ball.y + ball.radius;
@@ -180,32 +186,55 @@ function game_over() {
 }
 
 function main() {
+  /*
+    Creates a new HTML5 canvas element, adds listeners for input and
+    contains the main loop.
+  */
   canvas = document.createElement("canvas")
   canvas.width = WIDTH;
   canvas.height = HEIGHT;
   ctx = canvas.getContext("2d");
-  document.body.appendChild(canvas);
 
+  // Attempt to find a document element with specific id, otherwise attach the
+  // canvas to document body.
+  attach_to = document.getElementById('attached_script');
+  if (attach_to == null)
+  {
+      attach_to = document.body;
+  }
+  attach_to.appendChild(canvas);
+
+  // Add listeners for keydown and keyup
   keystate = {};
   document.addEventListener("keydown", function(evt) {
+    if (evt.keyCode === UpArrow || evt.keyCode === DownArrow) {
+      // Prevent up and down arrows from scrolling the website
+      evt.preventDefault();
+    }
     keystate[evt.keyCode] = true;
   });
+
   document.addEventListener("keyup", function(evt) {
     delete keystate[evt.keyCode];
   });
 
   init();
-
   var loop = function() {
+    /*
+      The main loop where all the magic happens.
+    */
     update();
     draw();
-
     window.requestAnimationFrame(loop, canvas);
   };
   window.requestAnimationFrame(loop, canvas);
 }
 
 function init() {
+  /*
+    Sets the game to its initial positions. Can be used for restarting
+    after game over.
+  */
   keystate = {}; // Reset the keystate to avoid stuck buttons
   player.x = player.width;
   player.y = (HEIGHT - player.height)/2;
@@ -220,6 +249,10 @@ function init() {
 }
 
 function update() {
+  /*
+    Calls update function from every object. Essentially handles the
+    physics and gameflow.
+  */
   for (i = 0; i < balls.length; i++) {
     balls[i].update();
   }
@@ -227,14 +260,10 @@ function update() {
   ai.update();
 }
 
-function draw_score() {
-  ctx.fillStyle = "#fff";
-  ctx.font="20px Georgia";
-  ctx.fillText("SCORE: " + player.score ,0.1*WIDTH,0.1*HEIGHT);
-  //ctx.fillText(ai.score,0.9*WIDTH,0.1*HEIGHT);
-}
-
 function draw() {
+  /*
+    Draws all components in game.
+  */
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
   ctx.save();
   ctx.fillStyle = "#fff";
@@ -254,4 +283,16 @@ function draw() {
   draw_score();
   ctx.restore();
 }
+
+function draw_score() {
+  /*
+    Draws the current score of the player.
+  */
+  ctx.fillStyle = "#fff";
+  ctx.font="20px Georgia";
+  ctx.fillText("SCORE: " + player.score ,0.1*WIDTH,0.1*HEIGHT);
+  //ctx.fillText(ai.score,0.9*WIDTH,0.1*HEIGHT);
+}
+
+
 main();
